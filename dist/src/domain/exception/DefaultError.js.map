@@ -1,0 +1,1 @@
+{"version":3,"file":"DefaultError.js","sourceRoot":"","sources":["../../../../src/domain/exception/DefaultError.ts"],"names":[],"mappings":";;;AAAA,MAAa,YAAa,SAAQ,KAAK;IAIrC,YAAa,OAAe,EAAE,IAAa;QACzC,KAAK,CAAC,OAAO,CAAC,CAAA;QACd,IAAI,CAAC,OAAO,GAAG,OAAO,CAAA;QACtB,IAAI,CAAC,IAAI,GAAG,IAAI,CAAA;IAClB,CAAC;CACF;AATD,oCASC"}
