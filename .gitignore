@@ -45,3 +45,4 @@ build/config\.gypi
 # stryker temp files
 .stryker-tmp
 .scannerwork
+/logs
