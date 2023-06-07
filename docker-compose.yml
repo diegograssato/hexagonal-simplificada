@@ -17,6 +17,7 @@ services:
       - redis
     environment:
       NODE_ENV: development
+      HTTP_BIN: http://10.22.0.20:8000
 
   redis: # Name of container
     image: redis
@@ -29,6 +30,20 @@ services:
     image: sonarqube:community
     ports:
       - "9000:9000"
+  openzipkin:
+    image: jaegertracing/all-in-one
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686" #Jeager port
+      - "14268:14268"  
+
+  # Zipkin
+  zipkin-all-in-one:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"          
 
 volumes:
   redis:

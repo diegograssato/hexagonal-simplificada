@@ -51,7 +51,14 @@ const loggerConf =  {
           pattern: "%[[%d] [%p] [%c] %] %m",
         }
       },
-      
+    request: {
+      type: 'console',
+      layout: {
+        type: 'pattern',
+        //pattern: "%[[%d] [%p] [%c] %] %m",
+        pattern: "%[[%d] [%p] [%X{requestId}] [%c] %]%m",
+      }
+    },
     dateFile: {
       type: 'dateFile',
       filename: `${appConfig.appName}.log`,
@@ -72,6 +79,12 @@ const loggerConf =  {
       default: {
         appenders: [
           'out'
+        ],
+        level: appConfig.logLevel
+      },
+      request: {
+        appenders: [
+          'request'
         ],
         level: appConfig.logLevel
       },

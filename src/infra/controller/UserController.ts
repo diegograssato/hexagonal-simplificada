@@ -69,7 +69,7 @@ export default class UserController {
      *           $ref: '#/definitions/Login'
      */
     httpServer.register("post", "/", async function (_params: object, body: object) {
-      
+      console.log(body)
       await useCaseRegister.execute(body);
       logger.info("Acessando via POST ")
       

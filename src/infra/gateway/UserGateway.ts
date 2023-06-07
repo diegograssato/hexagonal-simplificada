@@ -1,3 +1,3 @@
 export default interface UserGateway {
-  getData(): Promise<object>;
+  getData(): Promise<any>;
 }

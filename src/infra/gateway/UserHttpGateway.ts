@@ -10,8 +10,13 @@ export default class UserHttpGateway implements UserGateway {
   }
 
 
-  async getData(): Promise<object> {
-    return await this.httpClient.get(this.url)
+  async getData(): Promise<any> {
+ 
+    const message: string = this.httpClient.get(this.url);
+
+
+    return message 
+
 
   }
 

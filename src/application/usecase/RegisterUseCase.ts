@@ -28,11 +28,11 @@ export default class RegisterUser implements UseCase<Required<User>,void> {
     const passwordCripto = await this.cryptoProvider.crypt(user.password);
     
     // dependecia externa
-    const data = await this.gateway.getData()
+    //const data = await this.gateway.getData()
     
     this.logger.info("Dentro do useCase", "asdasda")
     // nova instancia
-    const userTosave = { ...user, id: data.uuid, password: passwordCripto } 
+    const userTosave = { ...user, id: "11111-", password: passwordCripto } 
     
     // adiciona usuario
     await this.repository.add(userTosave); 

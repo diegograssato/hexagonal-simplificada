@@ -1,4 +1,4 @@
-import express, { Request, Response, Application } from 'express'
+import express, { Request, Response, Express, NextFunction } from 'express'
 import cors from "cors";
 import compression from "compression";
 import helmet from 'helmet';
@@ -11,27 +11,31 @@ import { NotFoundMiddleware } from "./middleware/NotFoundMiddleware";
 import HttpStatusCode from "./middleware/HttpStatusCode";
 import { BaseResponse } from "../../domain/model/BaseResponse";
 import { logger } from '../../infra/logger/logger';
-import log4js from 'log4js' 
-import NodeCache from '../cache/NodeCache';
-
+import log4js,{ Logger, getLogger } from 'log4js'; 
+import axios, { AxiosResponse } from "axios";
+import { createId } from '@paralleldrive/cuid2';
+import HttpServerMiddleware from './middleware/HttpServerMiddleware';
+import ExpressBrute from "express-brute";
 
 export default class ExpressAdapter implements HttpServer {
-  public app: Application;
+  readonly app: Express;
+  public logger: Logger;
 
-  public swaggerUi = require('swagger-ui-express')
-  public swaggerSpec = require('../../infra/swagger')
+  readonly swaggerUi = require('swagger-ui-express')
+  readonly swaggerSpec = require('../../infra/swagger')
 
   constructor() {
+    this.logger = getLogger("request");
     this.app = express();
     this.middlewares();
     this.swagger();
   }
  
   middlewares(): void {
-    
-    this.app.use(log4js.connectLogger(logger, { level: 'auto' }));
-    
-    this.app.use(express.json({ limit: '10mb' }));
+     
+    this.app.use(log4js.connectLogger(this.logger, { level: 'auto' }));
+
+    this.app.disable(`x-powered-by`);
     this.app.use(bodyParser.json({ limit: '10mb' }));
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(cors());
@@ -40,11 +44,46 @@ export default class ExpressAdapter implements HttpServer {
     this.app.use(helmet({
       contentSecurityPolicy: appConfig.isProduction
     }));
- 
+    this.app.use(HttpServerMiddleware.relationRequest);
+
+    // this.app.use((req, res, next) => {
+    //   const requestId: string =  createId();
+
+    //   const requestIdField = "x-request-id"
+    //   const correlationIdField = "x-correlation-id"
+      
+    //   if (req.headers[requestIdField]){
+    //     const correlationId: string = req.headers[requestIdField].toString();    
+    //     req.headers[correlationIdField] = correlationId ;
+    //     res.set(correlationIdField, correlationId);
+
+    //   } 
+
+    //   req.headers[requestIdField] = requestId;
+    //   res.set(requestIdField, requestId);
+    //   res.locals.id = requestId;
+      
+    //   axios.interceptors.request.use(function (config) {
+  
+    //     config.headers[requestIdField] = req.headers[requestIdField];
+        
+    //     if (req.headers[correlationIdField]){
+    //       config.headers[correlationIdField] = req.headers[correlationIdField];
+    //     }
+        
+    //     return config;
+    //   }, function (error) {
+       
+    //     return Promise.reject(error);
+    //   }); 
+    //   next()
+    // });
   }
+  
  
 
   handlers(): void {
+    
     this.app.use(ErrorMiddleware.errorHandler);
     this.app.use(NotFoundMiddleware.notFoundHandler);
     
@@ -71,25 +110,38 @@ export default class ExpressAdapter implements HttpServer {
 
 
   async register(method: string, url: string, callback: Function): Promise<void> {
-    this.app[method](url, async function (req: Request, res: Response) {
+    if (!(method in this.app)){
+      throw new Error(`Method ${method} not found!`);
+    }
+    var store = new ExpressBrute.MemoryStore(); // stores state locally, don't use this in production
+    var bruteforce = new ExpressBrute(store);
+    this.app[method as keyof typeof this.app](url, async function (req: Request, res: Response, next: NextFunction) {
       try {
-      
+     
         const output = await callback(req.params, req.body);
         const response = new BaseResponse(HttpStatusCode.OK, "SUCCESS", output);
+        bruteforce.prevent, // error 429 if we hit this route too often
 
         res.status(HttpStatusCode.OK).json(response);
-      } catch (error) {
-        res.status(404).send(error);
+
+      } catch (error) { 
+        next(error)
       }
     
     });
   }
  
 
-  async listen(port: number): Promise<void> {
+  async listen(port: number) {
    
-    this.app.listen(port);''
+    try{
+      return this.app.listen(port,()=>{
+        logger.info("Server listening on Port %s.", port);
+      });
    
+    }catch(e){
+      console.log("In use.")
+    }
   }
 
 }

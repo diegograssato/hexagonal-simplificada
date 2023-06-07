@@ -1,0 +1,37 @@
+@baseUrl = http://10.22.0.20:3000
+
+###  Request numero 1
+# @name reponse
+POST {{baseUrl}} HTTP/1.1
+Content-Type: application/json
+x-request-id: kswaf7yksieobkt60v7tdymv
+
+{
+  "id": "",
+  "name":"Diego",
+  "email": "diego.grassato@gmail.com",
+  "password": "grassatogmail"
+}
+
+#### Variable Response
+@email = {{reponse.response.body.$.data.email}}
+###
+
+
+### 2
+POST {{baseUrl}} HTTP/1.1
+Content-Type: application/json
+x-request-id: {{email}}
+
+{
+  "id": "",
+  "name":"Diego",
+  "email": "diego.grassato@gmail.com",
+  "password": "grassatogmail"
+}
+ 
+###
+
+###
+GET {{baseUrl}} HTTP/1.1
+###
